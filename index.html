@@ -202,7 +202,7 @@
     <div class="header-divider"></div>
     <div class="header-brand">
       <h1>승환물산</h1>
-      <p>연안부두 여왕</p>
+      <p>연안부두 인싸</p>
     </div>
   </div>
   <div class="header-badge">사진 모으기</div>
@@ -438,8 +438,27 @@ async function mergeImages() {
   try {
     const imgs = await Promise.all(files.map(loadImage));
     const canvas = drawCanvas(imgs, 3600);
+
+    // 최대 품질로 만들 수 있는 최대 크기 계산
+    setStatus("최대 크기 계산 중...");
+    const maxUrl = canvas.toDataURL("image/jpeg", 1.0);
+    const maxBytes = Math.round(maxUrl.length * 0.75);
+    const maxMB = parseFloat((maxBytes / 1024 / 1024).toFixed(1));
+
+    // 슬라이더 최대값 자동 조정
+    const slider = document.getElementById("sizeSlider");
+    const adjustedMax = Math.max(maxMB, 3);
+    slider.max = adjustedMax;
+    if (parseFloat(slider.value) > adjustedMax) {
+      slider.value = adjustedMax;
+      updateSizeLabel();
+    }
+    document.querySelector(".slider-ticks").innerHTML =
+      "<span>3 MB</span><span>" + (adjustedMax / 2).toFixed(1) + " MB</span><span>" + adjustedMax + " MB (최대)</span>";
+
+    const actualTargetBytes = Math.min(targetBytes, maxBytes);
     setStatus("파일 크기 맞추는 중...");
-    resultDataUrl = await findQualityForTargetSize(canvas, targetBytes);
+    resultDataUrl = await findQualityForTargetSize(canvas, actualTargetBytes);
     resultImg.src = resultDataUrl;
     resultCard.style.display = "block";
     const actualKB = Math.round(resultDataUrl.length * 0.75 / 1024);
