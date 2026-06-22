@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>승환물산 — 통관사진 합치기</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif;
+    background: #f4f6f9;
+    min-height: 100vh;
+    color: #1a1a2e;
+  }
+
+  header {
+    background: #1a1a2e;
+    padding: 1.2rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo-circle {
+    width: 44px; height: 44px;
+    background: #e8a020;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 16px; color: #fff;
+    flex-shrink: 0;
+  }
+  header h1 {
+    font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.3px;
+  }
+  header p {
+    font-size: 12px; color: #aab; margin-top: 2px;
+  }
+
+  main {
+    max-width: 680px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+  }
+
+  .drop-zone {
+    border: 2px dashed #d0d5e0;
+    border-radius: 12px;
+    padding: 2.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fafbfd;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: #e8a020;
+    background: #fffbf3;
+  }
+  .drop-icon {
+    font-size: 40px; margin-bottom: 10px;
+  }
+  .drop-zone h3 {
+    font-size: 16px; font-weight: 600; color: #1a1a2e; margin-bottom: 6px;
+  }
+  .drop-zone p {
+    font-size: 13px; color: #888;
+  }
+
+  .thumb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    margin-top: 1rem;
+  }
+  .thumb-wrap {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    background: #f0f1f4;
+    border: 1px solid #e8eaf0;
+  }
+  .thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb-num {
+    position: absolute; top: 6px; left: 6px;
+    background: #1a1a2e; color: #fff;
+    font-size: 11px; font-weight: 700;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .thumb-del {
+    position: absolute; top: 6px; right: 6px;
+    background: rgba(0,0,0,0.5); color: #fff;
+    border: none; border-radius: 50%;
+    width: 22px; height: 22px; font-size: 14px;
+    cursor: pointer; line-height: 1; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .thumb-name {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.45);
+    color: #fff; font-size: 10px;
+    padding: 3px 6px; text-align: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .options-row {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem;
+  }
+  .opt-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1.5px solid #d0d5e0;
+    background: #fff;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; color: #444;
+    transition: all 0.15s;
+  }
+  .opt-btn.active {
+    border-color: #e8a020;
+    background: #fff8ee;
+    color: #c47d00;
+  }
+
+  .slider-row {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 0.75rem;
+  }
+  .slider-row label { font-size: 13px; color: #666; min-width: 60px; }
+  .slider-row input[type=range] { flex: 1; accent-color: #e8a020; }
+  .slider-val { font-size: 13px; font-weight: 600; color: #1a1a2e; min-width: 36px; text-align: right; }
+
+  #status-bar {
+    font-size: 13px; color: #888;
+    min-height: 20px; margin-bottom: 0.75rem;
+    padding: 0 2px;
+  }
+  #status-bar.ready { color: #2a9d5c; font-weight: 500; }
+  #status-bar.error { color: #e05; }
+
+  .btn-merge {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    border: none;
+    background: #1a1a2e;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: -0.2px;
+  }
+  .btn-merge:hover { background: #2d2d4e; }
+  .btn-merge:active { transform: scale(0.98); }
+  .btn-merge:disabled { background: #ccc; cursor: not-allowed; }
+
+  .result-card { display: none; }
+  .result-card img {
+    width: 100%; border-radius: 10px;
+    border: 1px solid #e8eaf0;
+    margin-bottom: 1rem;
+  }
+  .btn-download {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    border: 2px solid #e8a020;
+    background: #fff;
+    color: #c47d00;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-download:hover { background: #fff8ee; }
+
+  .filesize-badge {
+    display: inline-block;
+    background: #f0f1f4;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 0.75rem;
+  }
+
+  footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    font-size: 12px;
+    color: #aaa;
+  }
+
+  input[type=file] { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-circle">승</div>
+  <div>
+    <h1>승환물산</h1>
+    <p>통관사진 합치기</p>
+  </div>
+</header>
+
+<main>
+
+  <div class="card">
+    <div class="card-title">📎 사진 선택</div>
+    <input type="file" id="fileInput" multiple accept="image/*">
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div class="drop-icon">🖼️</div>
+      <h3>사진을 여기에 끌어다 놓거나 클릭해서 선택</h3>
+      <p>앞면 · 뒷면 · 제조년월 · 한글표시사항 등 여러 장 한번에 선택 가능</p>
+    </div>
+    <div class="thumb-grid" id="thumbGrid"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚙️ 설정</div>
+
+    <div style="margin-bottom:0.75rem">
+      <div style="font-size:13px; color:#666; margin-bottom:8px">배치 방식</div>
+      <div class="options-row">
+        <button class="opt-btn active" onclick="setLayout('grid',this)">격자 (추천)</button>
+        <button class="opt-btn" onclick="setLayout('row',this)">가로 1줄</button>
+        <button class="opt-btn" onclick="setLayout('col',this)">세로 1줄</button>
+      </div>
+    </div>
+
+    <div class="slider-row">
+      <label>사진 품질</label>
+      <input type="range" id="qualitySlider" min="40" max="95" value="75" step="5"
+        oninput="document.getElementById('qualityVal').textContent=this.value+'%'">
+      <span class="slider-val" id="qualityVal">75%</span>
+    </div>
+    <div class="slider-row">
+      <label>사진 간격</label>
+      <input type="range" id="gapSlider" min="0" max="30" value="8" step="2"
+        oninput="document.getElementById('gapVal').textContent=this.value+'px'">
+      <span class="slider-val" id="gapVal">8px</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="status-bar">사진을 2장 이상 선택하면 합치기 버튼이 활성화돼요</div>
+    <button class="btn-merge" id="mergeBtn" disabled onclick="mergeImages()">
+      🔗 사진 합치기
+    </button>
+  </div>
+
+  <div class="card result-card" id="resultCard">
+    <div class="card-title">✅ 완성된 사진</div>
+    <div id="filesizeBadge" class="filesize-badge"></div>
+    <img id="resultImg" alt="합쳐진 결과 사진">
+    <button class="btn-download" onclick="downloadResult()">
+      ⬇️ 다운로드
+    </button>
+  </div>
+
+</main>
+
+<footer>승환물산 통관사진 합치기 도구</footer>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const dropZone = document.getElementById('dropZone');
+const thumbGrid = document.getElementById('thumbGrid');
+const mergeBtn = document.getElementById('mergeBtn');
+const resultCard = document.getElementById('resultCard');
+const resultImg = document.getElementById('resultImg');
+const statusEl = document.getElementById('status-bar');
+
+let files = [];
+let layout = 'grid';
+let resultDataUrl = null;
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  addFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+});
+fileInput.addEventListener('change', e => addFiles(Array.from(e.target.files)));
+
+function addFiles(newFiles) {
+  files = [...files, ...newFiles];
+  renderThumbs();
+  mergeBtn.disabled = files.length < 2;
+  resultCard.style.display = 'none';
+  if (files.length === 0) statusEl.textContent = '사진을 2장 이상 선택하면 합치기 버튼이 활성화돼요';
+  else if (files.length === 1) statusEl.textContent = '사진을 1장 더 추가해주세요';
+  else { statusEl.textContent = files.length + '장 선택됨 — 합치기 버튼을 눌러주세요'; statusEl.className = 'ready'; }
+}
+
+function renderThumbs() {
+  thumbGrid.innerHTML = '';
+  files.forEach((f, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'thumb-wrap';
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(f);
+    const num = document.createElement('div');
+    num.className = 'thumb-num'; num.textContent = i + 1;
+    const del = document.createElement('button');
+    del.className = 'thumb-del'; del.textContent = '×';
+    del.setAttribute('aria-label', '사진 제거');
+    del.onclick = () => { files.splice(i, 1); renderThumbs(); mergeBtn.disabled = files.length < 2; };
+    const name = document.createElement('div');
+    name.className = 'thumb-name'; name.textContent = f.name.replace(/\.[^.]+$/, '');
+    wrap.appendChild(img); wrap.appendChild(num); wrap.appendChild(del); wrap.appendChild(name);
+    thumbGrid.appendChild(wrap);
+  });
+}
+
+function setLayout(l, btn) {
+  layout = l;
+  document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function loadImage(f) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = URL.createObjectURL(f);
+  });
+}
+
+async function mergeImages() {
+  if (files.length < 2) return;
+  mergeBtn.disabled = true;
+  statusEl.className = '';
+  statusEl.textContent = '사진 합치는 중...';
+  const quality = parseInt(document.getElementById('qualitySlider').value) / 100;
+  const gap = parseInt(document.getElementById('gapSlider').value);
+  const maxW = 1200;
+
+  try {
+    const imgs = await Promise.all(files.map(loadImage));
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const n = imgs.length;
+
+    if (layout === 'row') {
+      const cellW = Math.round((maxW - gap * (n - 1)) / n);
+      const cellH = Math.round(cellW * 0.75);
+      canvas.width = maxW; canvas.height = cellH;
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      imgs.forEach((img, i) => ctx.drawImage(img, i * (cellW + gap), 0, cellW, cellH));
+    } else if (layout === 'col') {
+      const cellH = Math.round(maxW * 0.75);
+      canvas.width = maxW; canvas.height = cellH * n + gap * (n - 1);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      imgs.forEach((img, i) => ctx.drawImage(img, 0, i * (cellH + gap), maxW, cellH));
+    } else {
+      const cols = n <= 2 ? 2 : n <= 4 ? 2 : 3;
+      const rows = Math.ceil(n / cols);
+      const cellW = Math.round((maxW - gap * (cols - 1)) / cols);
+      const cellH = Math.round(cellW * 0.75);
+      canvas.width = maxW; canvas.height = cellH * rows + gap * (rows - 1);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      imgs.forEach((img, i) => {
+        const col = i % cols, row = Math.floor(i / cols);
+        ctx.drawImage(img, col * (cellW + gap), row * (cellH + gap), cellW, cellH);
+      });
+    }
+
+    resultDataUrl = canvas.toDataURL('image/jpeg', quality);
+    resultImg.src = resultDataUrl;
+    resultCard.style.display = 'block';
+    const kb = Math.round(resultDataUrl.length * 0.75 / 1024);
+    document.getElementById('filesizeBadge').textContent = '예상 파일 크기: 약 ' + kb + ' KB';
+    statusEl.textContent = '완료! 아래에서 다운로드 해주세요 ✅';
+    statusEl.className = 'ready';
+    resultCard.scrollIntoView({ behavior: 'smooth' });
+  } catch(e) {
+    statusEl.textContent = '오류가 발생했어요. 사진 형식을 확인해주세요.';
+    statusEl.className = 'error';
+  }
+  mergeBtn.disabled = false;
+}
+
+function downloadResult() {
+  if (!resultDataUrl) return;
+  const a = document.createElement('a');
+  a.href = resultDataUrl;
+  const d = new Date();
+  const dateStr = d.toISOString().slice(0,10);
+  a.download = '승환물산_통관사진_' + dateStr + '.jpg';
+  a.click();
+}
+</script>
+</body>
+</html>
