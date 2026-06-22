@@ -474,11 +474,30 @@ async function mergeImages() {
 
 function downloadResult() {
   if (!resultDataUrl) return;
-  const a = document.createElement("a");
-  a.href = resultDataUrl;
   const d = new Date();
-  a.download = "승환물산_통관사진_" + d.toISOString().slice(0,10) + ".jpg";
+  const fileName = "승환물산_통관사진_" + d.toISOString().slice(0,10) + ".jpg";
+  const byteStr = atob(resultDataUrl.split(",")[1]);
+  const ab = new ArrayBuffer(byteStr.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteStr.length; i++) ia[i] = byteStr.charCodeAt(i);
+  const blob = new Blob([ab], { type: "image/jpeg" });
+
+  // 엣지(msSaveBlob) 지원
+  if (window.navigator && window.navigator.msSaveBlob) {
+    window.navigator.msSaveBlob(blob, fileName);
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.style.display = "none";
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
   a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 2000);
 }
 </script>
 </body>
