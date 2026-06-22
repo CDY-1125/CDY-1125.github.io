@@ -437,7 +437,7 @@ async function mergeImages() {
   const targetBytes = targetMB * 1024 * 1024;
   try {
     const imgs = await Promise.all(files.map(loadImage));
-    const canvas = drawCanvas(imgs, 1200);
+    const canvas = drawCanvas(imgs, 3600);
     setStatus("파일 크기 맞추는 중...");
     resultDataUrl = await findQualityForTargetSize(canvas, targetBytes);
     resultImg.src = resultDataUrl;
