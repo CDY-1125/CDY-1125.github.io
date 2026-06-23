@@ -226,25 +226,54 @@
       <div style="font-size:13px; color:#4a6070; font-weight:500; margin-bottom:8px">배치 방식</div>
       <div class="layout-row">
         <button class="layout-btn active" onclick="setLayout('grid',this)">
-          <span class="icon">⊞</span>격자
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style="display:block;margin:0 auto 4px;">
+            <rect x="3" y="3" width="10" height="10" rx="2" fill="currentColor" opacity="0.8"/>
+            <rect x="15" y="3" width="10" height="10" rx="2" fill="currentColor" opacity="0.8"/>
+            <rect x="3" y="15" width="10" height="10" rx="2" fill="currentColor" opacity="0.8"/>
+            <rect x="15" y="15" width="10" height="10" rx="2" fill="currentColor" opacity="0.8"/>
+          </svg>
+          격자
         </button>
         <button class="layout-btn" onclick="setLayout('row',this)">
-          <span class="icon">☰</span>가로 1줄
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style="display:block;margin:0 auto 4px;">
+            <rect x="2" y="9" width="7" height="10" rx="2" fill="currentColor" opacity="0.8"/>
+            <rect x="11" y="9" width="7" height="10" rx="2" fill="currentColor" opacity="0.8"/>
+            <rect x="20" y="9" width="7" height="10" rx="2" fill="currentColor" opacity="0.8"/>
+          </svg>
+          가로 1줄
         </button>
         <button class="layout-btn" onclick="setLayout('col',this)">
-          <span class="icon">☷</span>세로 1줄
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style="display:block;margin:0 auto 4px;">
+            <rect x="9" y="2" width="10" height="7" rx="2" fill="currentColor" opacity="0.8"/>
+            <rect x="9" y="11" width="10" height="7" rx="2" fill="currentColor" opacity="0.8"/>
+            <rect x="9" y="20" width="10" height="7" rx="2" fill="currentColor" opacity="0.8"/>
+          </svg>
+          세로 1줄
         </button>
       </div>
     </div>
 
-    <div class="slider-wrap">
-      <div class="slider-header">
-        <label>목표 파일 크기</label>
-        <span id="sizeVal">5 MB</span>
-      </div>
-      <input type="range" id="sizeSlider" min="3" max="10" value="5" step="0.5" oninput="updateSizeLabel()">
-      <div class="slider-ticks">
-        <span>3 MB</span><span>5 MB</span><span>10 MB</span>
+    <div style="margin-top:0.25rem;">
+      <div style="font-size:13px; color:#4a6070; font-weight:500; margin-bottom:8px;">화질 설정</div>
+      <div class="layout-row">
+        <button class="layout-btn" onclick="setQuality('normal',this)">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style="display:block;margin:0 auto 4px;">
+            <rect x="3" y="3" width="22" height="22" rx="3" stroke="currentColor" stroke-width="2" fill="none"/>
+            <path d="M3 19 L9 13 L14 17 L19 11 L25 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9" cy="10" r="2.5" fill="currentColor" opacity="0.7"/>
+          </svg>
+          보통
+        </button>
+        <button class="layout-btn active" onclick="setQuality('high',this)">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style="display:block;margin:0 auto 4px;">
+            <rect x="3" y="3" width="22" height="22" rx="3" stroke="currentColor" stroke-width="2" fill="none"/>
+            <path d="M3 19 L9 13 L14 17 L19 11 L25 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9" cy="10" r="2.5" fill="currentColor" opacity="0.7"/>
+            <circle cx="22" cy="5" r="4" fill="currentColor" opacity="0.9"/>
+            <path d="M20.5 5 L21.5 6.2 L23.8 3.5" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          고화질
+        </button>
       </div>
     </div>
   </div>
@@ -320,9 +349,13 @@ const statusEl = document.getElementById("status-bar");
 const statusText = document.getElementById("status-text");
 let files = [], layout = "grid", resultDataUrl = null;
 
-function updateSizeLabel() {
-  const v = parseFloat(document.getElementById("sizeSlider").value);
-  document.getElementById("sizeVal").textContent = v % 1 === 0 ? v + " MB" : v.toFixed(1) + " MB";
+let qualityMode = "high";
+function setQuality(mode, btn) {
+  qualityMode = mode;
+  document.querySelectorAll(".layout-btn").forEach(b => {
+    if (b.onclick && b.onclick.toString().includes("setQuality")) b.classList.remove("active");
+  });
+  btn.classList.add("active");
 }
 function setStatus(msg, type) {
   statusText.textContent = msg;
@@ -448,8 +481,7 @@ async function mergeImages() {
   if (files.length < 2) return;
   mergeBtn.disabled = true;
   setStatus("사진 합치는 중...");
-  const targetMB = parseFloat(document.getElementById("sizeSlider").value);
-  const targetBytes = targetMB * 1024 * 1024;
+  const targetBytes = qualityMode === "high" ? Infinity : 5 * 1024 * 1024;
   try {
     const imgs = await Promise.all(files.map(loadImage));
     const canvas = drawCanvas(imgs, 3600);
@@ -459,17 +491,6 @@ async function mergeImages() {
     const maxUrl = canvas.toDataURL("image/jpeg", 1.0);
     const maxBytes = Math.round(maxUrl.length * 0.75);
     const maxMB = parseFloat((maxBytes / 1024 / 1024).toFixed(1));
-
-    // 슬라이더 최대값 자동 조정
-    const slider = document.getElementById("sizeSlider");
-    const adjustedMax = Math.max(maxMB, 3);
-    slider.max = adjustedMax;
-    if (parseFloat(slider.value) > adjustedMax) {
-      slider.value = adjustedMax;
-      updateSizeLabel();
-    }
-    document.querySelector(".slider-ticks").innerHTML =
-      "<span>3 MB</span><span>" + (adjustedMax / 2).toFixed(1) + " MB</span><span>" + adjustedMax + " MB (최대)</span>";
 
     const actualTargetBytes = Math.min(targetBytes, maxBytes);
     setStatus("파일 크기 맞추는 중...");
