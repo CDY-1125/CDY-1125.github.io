@@ -534,6 +534,15 @@ function downloadResult() {
   setTimeout(() => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    // 다운로드 완료 후 초기화
+    files = [];
+    resultDataUrl = null;
+    thumbGrid.innerHTML = "";
+    resultCard.style.display = "none";
+    document.getElementById("fileNameInput").value = "";
+    document.getElementById("fileInput").value = "";
+    mergeBtn.disabled = true;
+    setStatus("사진을 2장 이상 선택해주세요");
   }, 2000);
 }
 </script>
