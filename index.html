@@ -267,6 +267,17 @@
     <div class="result-preview">
       <img id="resultImg" alt="합쳐진 결과 사진">
     </div>
+    <div style="margin-bottom:0.75rem;">
+      <div style="font-size:12px; color:#7a8fa6; font-weight:500; margin-bottom:6px;">파일명 설정</div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <input type="text" id="fileNameInput"
+          style="flex:1; padding:8px 12px; border:1.5px solid #dde3ea; border-radius:8px; font-size:13px; color:#1a2a3a; outline:none;"
+          placeholder="파일명을 입력해주세요"
+          onfocus="this.style.borderColor='#1a56c4'"
+          onblur="this.style.borderColor='#dde3ea'">
+        <span style="font-size:13px; color:#7a8fa6; white-space:nowrap; font-weight:500;">.jpg</span>
+      </div>
+    </div>
     <button class="btn-download" onclick="downloadResult()">
       ⬇︎ 다운로드
     </button>
@@ -475,7 +486,8 @@ async function mergeImages() {
 function downloadResult() {
   if (!resultDataUrl) return;
   const d = new Date();
-  const fileName = "승환물산_통관사진_" + d.toISOString().slice(0,10) + ".jpg";
+  const inputName = document.getElementById("fileNameInput").value.trim();
+  const fileName = (inputName || "승환물산_통관사진_" + d.toISOString().slice(0,10)) + ".jpg";
   const byteStr = atob(resultDataUrl.split(",")[1]);
   const ab = new ArrayBuffer(byteStr.length);
   const ia = new Uint8Array(ab);
