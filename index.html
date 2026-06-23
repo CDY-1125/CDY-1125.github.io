@@ -267,16 +267,20 @@
     <div class="result-preview">
       <img id="resultImg" alt="합쳐진 결과 사진">
     </div>
-    <div style="margin-bottom:0.75rem;">
-      <div style="font-size:12px; color:#7a8fa6; font-weight:500; margin-bottom:6px;">파일명 설정</div>
+    <div style="margin-bottom:0.75rem; background:#f0f4ff; border:1.5px solid #c5d8fc; border-radius:12px; padding:1rem;">
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+        <span style="font-size:15px;">✏️</span>
+        <span style="font-size:13px; font-weight:700; color:#1a56c4;">저장할 파일명을 입력해주세요</span>
+      </div>
       <div style="display:flex; align-items:center; gap:6px;">
         <input type="text" id="fileNameInput"
-          style="flex:1; padding:8px 12px; border:1.5px solid #dde3ea; border-radius:8px; font-size:13px; color:#1a2a3a; outline:none;"
-          placeholder="파일명을 입력해주세요"
-          onfocus="this.style.borderColor='#1a56c4'"
-          onblur="this.style.borderColor='#dde3ea'">
-        <span style="font-size:13px; color:#7a8fa6; white-space:nowrap; font-weight:500;">.jpg</span>
+          style="flex:1; padding:10px 14px; border:2px solid #1a56c4; border-radius:8px; font-size:14px; font-weight:500; color:#1a2a3a; outline:none; background:#fff;"
+          placeholder="예) 백김치_앞면_제조일자"
+          onfocus="this.style.boxShadow='0 0 0 3px rgba(26,86,196,0.15)'"
+          onblur="this.style.boxShadow='none'">
+        <span style="font-size:14px; color:#1a56c4; white-space:nowrap; font-weight:700;">.jpg</span>
       </div>
+      <div style="font-size:11px; color:#7a8fa6; margin-top:6px;">비워두면 날짜로 자동 저장돼요</div>
     </div>
     <button class="btn-download" onclick="downloadResult()">
       ⬇︎ 다운로드
