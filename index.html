@@ -481,7 +481,7 @@ async function mergeImages() {
   if (files.length < 2) return;
   mergeBtn.disabled = true;
   setStatus("사진 합치는 중...");
-  const targetBytes = qualityMode === "high" ? Infinity : 5 * 1024 * 1024;
+  const targetBytes = qualityMode === "high" ? 4.9 * 1024 * 1024 : 3 * 1024 * 1024;
   try {
     const imgs = await Promise.all(files.map(loadImage));
     const canvas = drawCanvas(imgs, 3600);
